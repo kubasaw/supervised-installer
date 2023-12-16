@@ -100,6 +100,27 @@ if [ -z "${SUPERVISOR_CONTAINER_ID}" ]; then
         -e SUPERVISOR_MACHINE=${SUPERVISOR_MACHINE} \
         "${SUPERVISOR_IMAGE}:latest"
 
+    # ARMv7 Monkeypatch
+
+    TMP=$(mktemp)
+    SU_ROOT="/usr/src/supervisor/supervisor"
+
+    # Patch supervisor updater
+    echo "[INFO] Patching Supervisor updater"
+    docker cp hassio_supervisor:${SU_ROOT}/updater.py ${TMP}
+    sed -i 's|data\["homeassistant"]\[machine]|data["homeassistant"].get(machine) or data["homeassistant"].get("default")|' ${TMP}
+    docker cp ${TMP} hassio_supervisor:${SU_ROOT}/updater.py
+
+    # Patch supervisor architecture mapping
+    echo "[INFO] Patching Supervisor architecture mapping"
+    docker cp hassio_supervisor:${SU_ROOT}/data/arch.json ${TMP}
+    OUT=$(jq --raw-output '.armv7 = ["armv7","armhf"]' ${TMP})
+    echo "$OUT" > ${TMP}
+    docker cp ${TMP} hassio_supervisor:${SU_ROOT}/data/arch.json
+
+    rm ${TMP}
+    # END ARMv7 Monkeypatch
+
     # Store the timestamp of this script. If the script changed, let's
     # recreate the container automatically.
     touch --reference="$0" "${SUPERVISOR_STARTSCRIPT_VERSION}"
