@@ -19,6 +19,7 @@ Step 1: Install the following dependencies with this command:
 ```bash
 apt install \
 apparmor \
+bluez \
 cifs-utils \
 curl \
 dbus \
@@ -67,6 +68,7 @@ apt install ./homeassistant-supervised.deb
 - raspberrypi4
 - raspberrypi3-64
 - raspberrypi4-64
+- raspberrypi5-64
 - tinker
 - khadas-vim3
 
